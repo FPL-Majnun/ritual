@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ritual — CINCI</title>
   <style>
+    :root{
+      /* Ritual palette */
+      --correct: #7CB8FF;  /* baby blue */
+      --present: #F2C14E;  /* honey/sand */
+      --absent:  #8B9098;  /* cool stone gray */
+      --ink:     #0B1F33;  /* dark navy */
+    }
+
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; }
     .wrap { max-width: 760px; margin: 0 auto; padding: 22px 16px 40px; }
     a { color: inherit; }
@@ -13,6 +21,8 @@
     .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f3f3f3; font-size: 13px; }
     h1 { font-size: 28px; margin: 14px 0 6px; }
     p { margin: 0 0 12px; color:#333; }
+    .hr { height:1px; background:#eee; margin: 16px 0 14px; }
+
     .board { margin: 18px auto 16px; width: min(360px, 100%); display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .cell {
       height: 54px; border: 2px solid #ddd; border-radius: 10px;
@@ -20,6 +30,11 @@
       font-size: 22px; font-weight: 700;
       user-select: none;
     }
+    .cell.filled { border-color: #bbb; }
+    .cell.correct { background: var(--correct); border-color: var(--correct); color: var(--ink); }
+    .cell.present { background: var(--present); border-color: var(--present); color: var(--ink); }
+    .cell.absent  { background: var(--absent);  border-color: var(--absent);  color: #fff; }
+
     .keyboard { width: min(760px, 100%); margin: 12px auto 0; display:flex; flex-direction:column; gap: 8px; }
     .row { display:flex; gap: 6px; justify-content:center; flex-wrap: nowrap; }
     .key {
@@ -27,9 +42,15 @@
       padding: 12px 10px; min-width: 34px; text-align:center;
       font-weight: 600; cursor: pointer; user-select: none;
     }
+    .key:hover { border-color: #bbb; }
     .key.wide { min-width: 68px; }
-    .hint { font-size: 13px; color:#666; margin-top: 10px; }
-    .hr { height:1px; background:#eee; margin: 16px 0 14px; }
+
+    /* Keyboard state colors (same as tiles) */
+    .key.correct { background: var(--correct); border-color: var(--correct); color: var(--ink); }
+    .key.present { background: var(--present); border-color: var(--present); color: var(--ink); }
+    .key.absent  { background: var(--absent);  border-color: var(--absent);  color: #fff; }
+
+    .hint { font-size: 13px; color:#666; margin-top: 10px; min-height: 18px; text-align:center; }
   </style>
 </head>
 <body>
@@ -60,127 +81,221 @@
       <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
     </div>
 
-    <!-- Keyboard mock (no logic yet) -->
     <div class="keyboard" aria-label="Tastatură">
       <div class="row">
-        <div class="key">Q</div><div class="key">W</div><div class="key">E</div><div class="key">R</div><div class="key">T</div><div class="key">Y</div><div class="key">U</div><div class="key">I</div><div class="key">O</div><div class="key">P</div>
+        <div class="key" data-k="Q">Q</div><div class="key" data-k="W">W</div><div class="key" data-k="E">E</div><div class="key" data-k="R">R</div><div class="key" data-k="T">T</div>
+        <div class="key" data-k="Y">Y</div><div class="key" data-k="U">U</div><div class="key" data-k="I">I</div><div class="key" data-k="O">O</div><div class="key" data-k="P">P</div>
       </div>
       <div class="row">
-        <div class="key">A</div><div class="key">S</div><div class="key">D</div><div class="key">F</div><div class="key">G</div><div class="key">H</div><div class="key">J</div><div class="key">K</div><div class="key">L</div>
-        <div class="key">Ă</div><div class="key">Â</div><div class="key">Î</div>
+        <div class="key" data-k="A">A</div><div class="key" data-k="S">S</div><div class="key" data-k="D">D</div><div class="key" data-k="F">F</div><div class="key" data-k="G">G</div>
+        <div class="key" data-k="H">H</div><div class="key" data-k="J">J</div><div class="key" data-k="K">K</div><div class="key" data-k="L">L</div>
+        <div class="key" data-k="Ă">Ă</div><div class="key" data-k="Â">Â</div><div class="key" data-k="Î">Î</div>
       </div>
       <div class="row">
-        <div class="key wide">Enter</div>
-        <div class="key">Z</div><div class="key">X</div><div class="key">C</div><div class="key">V</div><div class="key">B</div><div class="key">N</div><div class="key">M</div>
-        <div class="key">Ș</div><div class="key">Ț</div>
-        <div class="key wide">←</div>
+        <div class="key wide" data-k="ENTER">Enter</div>
+        <div class="key" data-k="Z">Z</div><div class="key" data-k="X">X</div><div class="key" data-k="C">C</div><div class="key" data-k="V">V</div><div class="key" data-k="B">B</div>
+        <div class="key" data-k="N">N</div><div class="key" data-k="M">M</div>
+        <div class="key" data-k="Ș">Ș</div><div class="key" data-k="Ț">Ț</div>
+        <div class="key wide" data-k="BACKSPACE">←</div>
       </div>
     </div>
 
     <div id="msg" class="hint">Apasă tastele sau scrie de la tastatură.</div>
   </div>
+
   <script>
-  // --- Simple typing engine (no scoring yet) ---
-  const ROWS = 6;
-  const COLS = 5;
+    // --- CINCI (daily-only, v0 word list) ---
+    const ROWS = 6;
+    const COLS = 5;
 
-  const cells = Array.from(document.querySelectorAll(".cell"));
-  const keys  = Array.from(document.querySelectorAll(".key"));
-  const msgEl = document.getElementById("msg");
+    // v0 test words (5 letters, uppercase). We'll expand later.
+    const WORDS = [
+      "CARTE","MASIV","NOROC","PIESE","SALTA",
+      "MUNTE","LACUL","ROATA","LUMEA","COPAC",
+      "FEREA","SOARE","NODUL","VIRUS","LINIE",
+      "PUNCT","HARTA","SAREI","CINCI","ALTAR"
+    ].map(w => w.toUpperCase());
 
-  let row = 0;
-  let col = 0;
-  const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+    const ALLOWED = new Set(WORDS);
 
-  function setMsg(text) {
-    msgEl.textContent = text;
-  }
+    const cells = Array.from(document.querySelectorAll(".cell"));
+    const keyEls = Array.from(document.querySelectorAll(".key"));
+    const keyByChar = new Map(keyEls.map(k => [k.getAttribute("data-k"), k]));
+    const msgEl = document.getElementById("msg");
 
-  function cellIndex(r, c) {
-    return r * COLS + c;
-  }
+    let row = 0;
+    let col = 0;
+    let isOver = false;
 
-  function render() {
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const idx = cellIndex(r, c);
-        cells[idx].textContent = grid[r][c];
+    const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+
+    // Daily word selection (uses user's local date; good enough for RO v0)
+    const START_DATE = new Date(2025, 0, 1); // 2025-01-01
+    function daysSinceStart(now) {
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const start = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
+      return Math.floor((today - start) / msPerDay);
+    }
+    const puzzleIndex = Math.max(0, daysSinceStart(new Date()));
+    const ANSWER = WORDS[puzzleIndex % WORDS.length];
+
+    function setMsg(text) { msgEl.textContent = text || ""; }
+    function cellIndex(r, c) { return r * COLS + c; }
+
+    function renderLetters() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const idx = cellIndex(r, c);
+          cells[idx].textContent = grid[r][c];
+          cells[idx].classList.toggle("filled", grid[r][c] !== "");
+        }
       }
     }
-  }
 
-  function addLetter(ch) {
-    if (row >= ROWS) return;
-    if (col >= COLS) return;
-
-    grid[row][col] = ch;
-    col += 1;
-    render();
-    setMsg("");
-  }
-
-  function backspace() {
-    if (row >= ROWS) return;
-    if (col === 0) return;
-
-    col -= 1;
-    grid[row][col] = "";
-    render();
-    setMsg("");
-  }
-
-  function submitRow() {
-    if (row >= ROWS) return;
-
-    if (col < COLS) {
-      setMsg("Completează 5 litere.");
-      return;
+    function addLetter(ch) {
+      if (isOver) return;
+      if (row >= ROWS) return;
+      if (col >= COLS) return;
+      grid[row][col] = ch;
+      col += 1;
+      renderLetters();
+      setMsg("");
     }
 
-    // For now, we just advance to next row.
-    row += 1;
-    col = 0;
-
-    if (row >= ROWS) {
-      setMsg("Gata — următorul pas: verificarea cuvântului + culorile.");
-    } else {
-      setMsg("OK. (Încă nu verificăm cuvântul.)");
+    function backspace() {
+      if (isOver) return;
+      if (row >= ROWS) return;
+      if (col === 0) return;
+      col -= 1;
+      grid[row][col] = "";
+      renderLetters();
+      setMsg("");
     }
-  }
 
-  function handleInputToken(token) {
-    if (!token) return;
+    function getCurrentGuess() {
+      return grid[row].join("");
+    }
 
-    if (token === "ENTER") return submitRow();
-    if (token === "BACKSPACE") return backspace();
+    // Score with duplicate-letter handling
+    function scoreGuess(guess, answer) {
+      const states = Array(COLS).fill("absent");
+      const ans = answer.split("");
+      const g = guess.split("");
 
-    // Accept A-Z plus Romanian diacritics
-    const allowed = /^[A-ZĂÂÎȘȚ]$/;
-    if (allowed.test(token)) addLetter(token);
-  }
+      // pass 1: correct
+      for (let i = 0; i < COLS; i++) {
+        if (g[i] === ans[i]) {
+          states[i] = "correct";
+          ans[i] = null;
+          g[i] = null;
+        }
+      }
+      // pass 2: present
+      for (let i = 0; i < COLS; i++) {
+        if (g[i] == null) continue;
+        const idx = ans.indexOf(g[i]);
+        if (idx !== -1) {
+          states[i] = "present";
+          ans[idx] = null;
+        }
+      }
+      return states;
+    }
 
-  // On-screen keyboard clicks
-  keys.forEach(k => {
-    k.addEventListener("click", () => {
-      const t = k.textContent.trim();
-      if (t === "Enter") return handleInputToken("ENTER");
-      if (t === "←") return handleInputToken("BACKSPACE");
-      handleInputToken(t.toUpperCase());
+    function paintRow(r, states) {
+      for (let c = 0; c < COLS; c++) {
+        const idx = cellIndex(r, c);
+        cells[idx].classList.add(states[c]);
+      }
+    }
+
+    // Keep keyboard coloring monotonic: correct > present > absent
+    const rank = { absent: 1, present: 2, correct: 3 };
+    const keyState = new Map(); // char -> state
+
+    function updateKeyboard(guess, states) {
+      for (let i = 0; i < guess.length; i++) {
+        const ch = guess[i];
+        const st = states[i];
+        if (!keyByChar.has(ch)) continue;
+
+        const prev = keyState.get(ch);
+        if (!prev || rank[st] > rank[prev]) {
+          keyState.set(ch, st);
+          const el = keyByChar.get(ch);
+          el.classList.remove("absent","present","correct");
+          el.classList.add(st);
+        }
+      }
+    }
+
+    function submitRow() {
+      if (isOver) return;
+      if (row >= ROWS) return;
+
+      if (col < COLS) {
+        setMsg("Completează 5 litere.");
+        return;
+      }
+
+      const guess = getCurrentGuess();
+
+      if (!ALLOWED.has(guess)) {
+        setMsg("Cuvânt inexistent (lista v0).");
+        return;
+      }
+
+      const states = scoreGuess(guess, ANSWER);
+      paintRow(row, states);
+      updateKeyboard(guess, states);
+
+      if (guess === ANSWER) {
+        isOver = true;
+        setMsg("Bravo. Ritual făcut ✅");
+        return;
+      }
+
+      row += 1;
+      col = 0;
+
+      if (row >= ROWS) {
+        isOver = true;
+        setMsg(`Gata. Cuvântul era: ${ANSWER}`);
+        return;
+      }
+
+      setMsg("");
+    }
+
+    function handleInputToken(token) {
+      if (!token) return;
+      if (token === "ENTER") return submitRow();
+      if (token === "BACKSPACE") return backspace();
+
+      const allowed = /^[A-ZĂÂÎȘȚ]$/;
+      if (allowed.test(token)) addLetter(token);
+    }
+
+    // On-screen keyboard clicks
+    keyEls.forEach(k => {
+      k.addEventListener("click", () => {
+        const t = k.getAttribute("data-k");
+        handleInputToken(t);
+      });
     });
-  });
 
-  // Physical keyboard typing
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") return handleInputToken("ENTER");
-    if (e.key === "Backspace") return handleInputToken("BACKSPACE");
+    // Physical keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") return handleInputToken("ENTER");
+      if (e.key === "Backspace") return handleInputToken("BACKSPACE");
 
-    // Convert to uppercase; handles ă â î ș ț too
-    const ch = (e.key || "").toUpperCase();
-    handleInputToken(ch);
-  });
+      // Romanian diacritics typed directly will work; other letters are uppercased
+      const ch = (e.key || "").toUpperCase();
+      handleInputToken(ch);
+    });
 
-  render();
-</script>
-  
+    renderLetters();
+  </script>
 </body>
 </html>
