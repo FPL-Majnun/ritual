@@ -390,7 +390,7 @@ renderLetters();
 if (restored) {
   for (let r = 0; r < ROWS; r++) {
     const guess = grid[r].join("");
-    if (guess.length === COLS && !guess.includes("")) {
+    if (guess.length === COLS) {
       const states = scoreGuess(guess, ANSWER);
       paintRow(r, states);
       updateKeyboard(guess, states);
