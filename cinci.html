@@ -77,7 +77,110 @@
       </div>
     </div>
 
-    <div class="hint">Următorul pas: facem tastele să scrie pe tablă și activăm logica zilnică.</div>
+    <div id="msg" class="hint">Apasă tastele sau scrie de la tastatură.</div>
   </div>
+  <script>
+  // --- Simple typing engine (no scoring yet) ---
+  const ROWS = 6;
+  const COLS = 5;
+
+  const cells = Array.from(document.querySelectorAll(".cell"));
+  const keys  = Array.from(document.querySelectorAll(".key"));
+  const msgEl = document.getElementById("msg");
+
+  let row = 0;
+  let col = 0;
+  const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+
+  function setMsg(text) {
+    msgEl.textContent = text;
+  }
+
+  function cellIndex(r, c) {
+    return r * COLS + c;
+  }
+
+  function render() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const idx = cellIndex(r, c);
+        cells[idx].textContent = grid[r][c];
+      }
+    }
+  }
+
+  function addLetter(ch) {
+    if (row >= ROWS) return;
+    if (col >= COLS) return;
+
+    grid[row][col] = ch;
+    col += 1;
+    render();
+    setMsg("");
+  }
+
+  function backspace() {
+    if (row >= ROWS) return;
+    if (col === 0) return;
+
+    col -= 1;
+    grid[row][col] = "";
+    render();
+    setMsg("");
+  }
+
+  function submitRow() {
+    if (row >= ROWS) return;
+
+    if (col < COLS) {
+      setMsg("Completează 5 litere.");
+      return;
+    }
+
+    // For now, we just advance to next row.
+    row += 1;
+    col = 0;
+
+    if (row >= ROWS) {
+      setMsg("Gata — următorul pas: verificarea cuvântului + culorile.");
+    } else {
+      setMsg("OK. (Încă nu verificăm cuvântul.)");
+    }
+  }
+
+  function handleInputToken(token) {
+    if (!token) return;
+
+    if (token === "ENTER") return submitRow();
+    if (token === "BACKSPACE") return backspace();
+
+    // Accept A-Z plus Romanian diacritics
+    const allowed = /^[A-ZĂÂÎȘȚ]$/;
+    if (allowed.test(token)) addLetter(token);
+  }
+
+  // On-screen keyboard clicks
+  keys.forEach(k => {
+    k.addEventListener("click", () => {
+      const t = k.textContent.trim();
+      if (t === "Enter") return handleInputToken("ENTER");
+      if (t === "←") return handleInputToken("BACKSPACE");
+      handleInputToken(t.toUpperCase());
+    });
+  });
+
+  // Physical keyboard typing
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") return handleInputToken("ENTER");
+    if (e.key === "Backspace") return handleInputToken("BACKSPACE");
+
+    // Convert to uppercase; handles ă â î ș ț too
+    const ch = (e.key || "").toUpperCase();
+    handleInputToken(ch);
+  });
+
+  render();
+</script>
+  
 </body>
 </html>
