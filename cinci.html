@@ -408,6 +408,20 @@ if (restored) {
     }
   }
   renderKeyboardColors();
+
+  // Migration: older saves may not have "result"
+  if (isOver && (result !== "win" && result !== "lose")) {
+    const wonRow = grid.findIndex(r => r.join("") === ANSWER);
+    if (wonRow !== -1) {
+      result = "win";
+      row = wonRow; // so share shows correct tries (row+1)
+    } else {
+      result = "lose";
+    }
+  }
+}
+saveState();
+
 }
 saveState();
     function emojiForState(st) {
