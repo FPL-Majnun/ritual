@@ -131,6 +131,7 @@
     let row = 0;
     let col = 0;
     let isOver = false;
+    let result = null; // "win" | "lose" | null
 
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
 
@@ -170,6 +171,7 @@ function saveState() {
     row,
     col,
     isOver,
+    result,
     grid,
     keyState: Array.from(keyState.entries())
   };
@@ -195,6 +197,7 @@ function loadState() {
     row = state.row ?? 0;
     col = state.col ?? 0;
     isOver = !!state.isOver;
+    result = state.result ?? null;
 
     // restore grid letters
     if (Array.isArray(state.grid) && state.grid.length === ROWS) {
@@ -342,6 +345,7 @@ function loadState() {
 
       if (guess === ANSWER) {
         isOver = true;
+        result = "win";
         setMsg("Bravo. Ritual făcut ✅");
         saveState();
         return;
@@ -352,6 +356,7 @@ function loadState() {
 
       if (row >= ROWS) {
         isOver = true;
+        result = "lose";
         setMsg(`Gata. Cuvântul era: ${ANSWER}`);
         saveState();
         return;
@@ -413,7 +418,8 @@ saveState();
 
 function buildShareText() {
   const lines = [];
-  lines.push(`Ritual — CINCI ${todayKey}`);
+ const tries = result === "win" ? `${row + 1}/6` : (result === "lose" ? "X/6" : "-/6");
+lines.push(`Ritual — CINCI ${todayKey} (${tries})`);
 
   // For each completed row up to current row (or all rows if game over)
   const maxRow = isOver ? ROWS : row;
