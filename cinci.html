@@ -129,16 +129,32 @@
 
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
 
-    // Daily word selection (uses user's local date; good enough for RO v0)
-    const START_DATE = new Date(2025, 0, 1); // 2025-01-01
-    function daysSinceStart(now) {
-      const msPerDay = 24 * 60 * 60 * 1000;
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const start = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
-      return Math.floor((today - start) / msPerDay);
-    }
-    const puzzleIndex = Math.max(0, daysSinceStart(new Date()));
-    const ANSWER = WORDS[puzzleIndex % WORDS.length];
+   // Daily word selection (Europe/Bucharest midnight)
+const START_KEY = "2025-01-01"; // season start (Bucharest date key)
+
+function bucharestDateKey(now = new Date()) {
+  // en-CA gives YYYY-MM-DD formatting, with timeZone forced to Europe/Bucharest
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Bucharest",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+function daysBetweenKeys(startKey, endKey) {
+  // startKey/endKey are "YYYY-MM-DD"
+  const [sy, sm, sd] = startKey.split("-").map(Number);
+  const [ey, em, ed] = endKey.split("-").map(Number);
+  const startUTC = Date.UTC(sy, sm - 1, sd);
+  const endUTC = Date.UTC(ey, em - 1, ed);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.floor((endUTC - startUTC) / msPerDay);
+}
+
+const todayKey = bucharestDateKey();
+const puzzleIndex = Math.max(0, daysBetweenKeys(START_KEY, todayKey));
+const ANSWER = WORDS[puzzleIndex % WORDS.length];
 
     function setMsg(text) { msgEl.textContent = text || ""; }
     function cellIndex(r, c) { return r * COLS + c; }
