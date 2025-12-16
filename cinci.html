@@ -100,7 +100,12 @@
       </div>
     </div>
 
-    <div id="msg" class="hint">Apasă tastele sau scrie de la tastatură.</div>
+    <div style="display:flex; gap:10px; justify-content:center; align-items:center; margin-top:10px;">
+  <button id="shareBtn" style="border:1px solid #ddd; border-radius:10px; background:#fff; padding:10px 12px; font-weight:600; cursor:pointer;">
+    Copiază
+  </button>
+  <div id="msg" class="hint" style="margin:0;">Apasă tastele sau scrie de la tastatură.</div>
+</div>
   </div>
 
   <script>
@@ -155,6 +160,7 @@ function daysBetweenKeys(startKey, endKey) {
 const todayKey = bucharestDateKey();
 const puzzleIndex = Math.max(0, daysBetweenKeys(START_KEY, todayKey));
 const ANSWER = WORDS[puzzleIndex % WORDS.length];
+    const shareBtn = document.getElementById("shareBtn");
     // --- Save/restore (daily-only) ---
 const STORAGE_KEY = `ritual_cinci_${todayKey}`;
 
@@ -399,6 +405,41 @@ if (restored) {
   renderKeyboardColors();
 }
 saveState();
+    function emojiForState(st) {
+  if (st === "correct") return "🟦";  // baby blue
+  if (st === "present") return "🟨";  // honey
+  return "⬛";                         // stone/absent
+}
+
+function buildShareText() {
+  const lines = [];
+  lines.push(`Ritual — CINCI ${todayKey}`);
+
+  // For each completed row up to current row (or all rows if game over)
+  const maxRow = isOver ? ROWS : row;
+  for (let r = 0; r < maxRow; r++) {
+    const guess = grid[r].join("");
+    if (guess.length !== COLS) continue;
+    const states = scoreGuess(guess, ANSWER);
+    lines.push(states.map(emojiForState).join(""));
+  }
+  return lines.join("\n");
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    setMsg("Copiat ✅");
+  } catch {
+    // Fallback: prompt (works even if clipboard permissions are blocked)
+    window.prompt("Copiază manual:", text);
+  }
+}
+
+    shareBtn.addEventListener("click", () => {
+  const text = buildShareText();
+  copyToClipboard(text);
+});
   </script>
 </body>
 </html>
