@@ -155,6 +155,63 @@ function daysBetweenKeys(startKey, endKey) {
 const todayKey = bucharestDateKey();
 const puzzleIndex = Math.max(0, daysBetweenKeys(START_KEY, todayKey));
 const ANSWER = WORDS[puzzleIndex % WORDS.length];
+    // --- Save/restore (daily-only) ---
+const STORAGE_KEY = `ritual_cinci_${todayKey}`;
+
+function saveState() {
+  const state = {
+    todayKey,
+    row,
+    col,
+    isOver,
+    grid,
+    keyState: Array.from(keyState.entries())
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  // Remove any old saved days for CINCI
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith("ritual_cinci_") && k !== STORAGE_KEY) {
+      localStorage.removeItem(k);
+    }
+  }
+
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+
+  try {
+    const state = JSON.parse(raw);
+    if (!state || state.todayKey !== todayKey) return false;
+
+    row = state.row ?? 0;
+    col = state.col ?? 0;
+    isOver = !!state.isOver;
+
+    // restore grid letters
+    if (Array.isArray(state.grid) && state.grid.length === ROWS) {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          grid[r][c] = (state.grid[r] && state.grid[r][c]) ? state.grid[r][c] : "";
+        }
+      }
+    }
+
+    // restore keyboard states
+    keyState.clear();
+    if (Array.isArray(state.keyState)) {
+      for (const [ch, st] of state.keyState) {
+        keyState.set(ch, st);
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
 
     function setMsg(text) { msgEl.textContent = text || ""; }
     function cellIndex(r, c) { return r * COLS + c; }
@@ -168,6 +225,14 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
         }
       }
     }
+    function renderKeyboardColors() {
+  keyEls.forEach(k => k.classList.remove("absent","present","correct"));
+  for (const [ch, st] of keyState.entries()) {
+    const el = keyByChar.get(ch);
+    if (!el) continue;
+    el.classList.add(st);
+  }
+}
 
     function addLetter(ch) {
       if (isOver) return;
@@ -177,6 +242,7 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
       col += 1;
       renderLetters();
       setMsg("");
+      saveState();
     }
 
     function backspace() {
@@ -187,6 +253,7 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
       grid[row][col] = "";
       renderLetters();
       setMsg("");
+      saveState();
     }
 
     function getCurrentGuess() {
@@ -265,10 +332,12 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
       const states = scoreGuess(guess, ANSWER);
       paintRow(row, states);
       updateKeyboard(guess, states);
+      saveState();
 
       if (guess === ANSWER) {
         isOver = true;
         setMsg("Bravo. Ritual făcut ✅");
+        saveState();
         return;
       }
 
@@ -278,6 +347,7 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
       if (row >= ROWS) {
         isOver = true;
         setMsg(`Gata. Cuvântul era: ${ANSWER}`);
+        saveState();
         return;
       }
 
@@ -311,7 +381,24 @@ const ANSWER = WORDS[puzzleIndex % WORDS.length];
       handleInputToken(ch);
     });
 
-    renderLetters();
+   // Start (restore today's progress if it exists)
+const restored = loadState();
+renderLetters();
+
+// If we restored, we need to re-apply colors.
+// Easiest v0: re-score all completed rows and repaint.
+if (restored) {
+  for (let r = 0; r < ROWS; r++) {
+    const guess = grid[r].join("");
+    if (guess.length === COLS && !guess.includes("")) {
+      const states = scoreGuess(guess, ANSWER);
+      paintRow(r, states);
+      updateKeyboard(guess, states);
+    }
+  }
+  renderKeyboardColors();
+}
+saveState();
   </script>
 </body>
 </html>
