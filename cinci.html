@@ -392,7 +392,7 @@ function loadState() {
       handleInputToken(ch);
     });
 
-   // Start (restore today's progress if it exists)
+  // Start (restore today's progress if it exists)
 const restored = loadState();
 renderLetters();
 
@@ -408,48 +408,9 @@ if (restored) {
     }
   }
   renderKeyboardColors();
-  
 }
+
 saveState();
-
-}
-saveState();
-    function emojiForState(st) {
-  if (st === "correct") return "🟦";  // baby blue
-  if (st === "present") return "🟨";  // honey
-  return "⬛";                         // stone/absent
-}
-
-function buildShareText() {
-  const lines = [];
- const tries = result === "win" ? `${row + 1}/6` : (result === "lose" ? "X/6" : "-/6");
-lines.push(`Ritual — CINCI ${todayKey} (${tries})`);
-
-  // For each completed row up to current row (or all rows if game over)
-  const maxRow = isOver ? ROWS : row;
-  for (let r = 0; r < maxRow; r++) {
-    const guess = grid[r].join("");
-    if (guess.length !== COLS) continue;
-    const states = scoreGuess(guess, ANSWER);
-    lines.push(states.map(emojiForState).join(""));
-  }
-  return lines.join("\n");
-}
-
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    setMsg("Copiat ✅");
-  } catch {
-    // Fallback: prompt (works even if clipboard permissions are blocked)
-    window.prompt("Copiază manual:", text);
-  }
-}
-
-    shareBtn.addEventListener("click", () => {
-  const text = buildShareText();
-  copyToClipboard(text);
-});
   </script>
 </body>
 </html>
