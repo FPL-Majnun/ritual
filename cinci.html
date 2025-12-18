@@ -242,7 +242,7 @@ function loadState() {
     if (!state || state.todayKey !== todayKey) return false;
 
     row = state.row ?? 0;
-    col = state.col ?? 0;
+    col = 0; // we'll recompute from the grid after restoring letters
     isOver = !!state.isOver;
     result = state.result ?? null;
 
@@ -253,6 +253,19 @@ function loadState() {
           grid[r][c] = (state.grid[r] && state.grid[r][c]) ? state.grid[r][c] : "";
         }
       }
+      // recompute cursor position from restored grid
+if (row < ROWS) {
+  const isFull = grid[row].every(ch => ch !== "");
+  if (isFull) {
+    row = Math.min(row + 1, ROWS);
+    col = 0;
+  } else {
+    col = grid[row].findIndex(ch => ch === "");
+    if (col < 0) col = 0;
+  }
+} else {
+  col = 0;
+}
     }
 
     // restore keyboard states
