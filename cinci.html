@@ -471,7 +471,7 @@ function emojiForState(st) {
 }
 
 function buildShareText() {
-  const solvedRow = grid.findIndex(r => r.join("") === ANSWER);
+  const solvedRow = grid.findIndex(r => normWord(r.join("")) === ANSWER_NORM);
   const tries = solvedRow !== -1 ? `${solvedRow + 1}/6` : (isOver ? "X/6" : "-/6");
 
   const lines = [];
@@ -481,7 +481,7 @@ function buildShareText() {
   for (let r = 0; r < maxRow; r++) {
     const guess = grid[r].join("");
     if (guess.length !== COLS) continue;
-    const states = scoreGuess(guess, ANSWER);
+    const states = scoreGuess(normWord(guess), ANSWER_NORM);
     lines.push(states.map(emojiForState).join(""));
   }
   return lines.join("\n");
@@ -512,7 +512,7 @@ if (restored) {
   for (let r = 0; r < ROWS; r++) {
     const guess = grid[r].join("");
     if (guess.length === COLS) {
-      const states = scoreGuess(guess, ANSWER);
+      const states = scoreGuess(normWord(guess), ANSWER_NORM);
       paintRow(r, states);
       updateKeyboard(guess, states);
     }
