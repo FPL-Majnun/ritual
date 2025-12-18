@@ -44,6 +44,14 @@
     }
     .key:hover { border-color: #bbb; }
     .key.wide { min-width: 68px; }
+    @media (max-width: 420px) {
+  .wrap { padding: 16px 12px 34px; }
+  .board { width: min(330px, 100%); gap: 6px; }
+  .cell { height: 50px; font-size: 20px; border-radius: 9px; }
+  .row { gap: 4px; }
+  .key { padding: 12px 8px; min-width: 30px; border-radius: 9px; }
+  .key.wide { min-width: 58px; }
+}
 
     /* Keyboard state colors (same as tiles) */
     .key.correct { background: var(--correct); border-color: var(--correct); color: var(--ink); }
@@ -139,23 +147,18 @@
 const START_KEY = "2025-01-01"; // season start (Bucharest date key)
 
 function bucharestDateKey(now = new Date()) {
-  // en-CA gives YYYY-MM-DD formatting, with timeZone forced to Europe/Bucharest
-  return new Intl.DateTimeFormat("en-CA", {
+  const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Bucharest",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(now);
-}
+  }).formatToParts(now);
 
-function daysBetweenKeys(startKey, endKey) {
-  // startKey/endKey are "YYYY-MM-DD"
-  const [sy, sm, sd] = startKey.split("-").map(Number);
-  const [ey, em, ed] = endKey.split("-").map(Number);
-  const startUTC = Date.UTC(sy, sm - 1, sd);
-  const endUTC = Date.UTC(ey, em - 1, ed);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return Math.floor((endUTC - startUTC) / msPerDay);
+  const get = (type) => parts.find(p => p.type === type)?.value || "";
+  const y = get("year");
+  const m = get("month");
+  const d = get("day");
+  return `${y}-${m}-${d}`;
 }
 
 const todayKey = bucharestDateKey();
@@ -384,13 +387,27 @@ function loadState() {
 
     // Physical keyboard
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") return handleInputToken("ENTER");
-      if (e.key === "Backspace") return handleInputToken("BACKSPACE");
+  // Don’t interfere with browser shortcuts (Ctrl/⌘/Alt combos)
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-      // Romanian diacritics typed directly will work; other letters are uppercased
-      const ch = (e.key || "").toUpperCase();
-      handleInputToken(ch);
-    });
+  if (e.key === "Enter") {
+    e.preventDefault();
+    return handleInputToken("ENTER");
+  }
+  if (e.key === "Backspace") {
+    e.preventDefault();
+    return handleInputToken("BACKSPACE");
+  }
+
+  // Romanian diacritics typed directly will work; other letters are uppercased
+  const ch = (e.key || "").toUpperCase();
+
+  // Only stop default behavior if it's a valid game letter
+  if (/^[A-ZĂÂÎȘȚ]$/.test(ch)) {
+    e.preventDefault();
+    return handleInputToken(ch);
+  }
+});
 // --- Share (copy result) ---
 function emojiForState(st) {
   if (st === "correct") return "🟦";
