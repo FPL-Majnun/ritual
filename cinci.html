@@ -304,6 +304,11 @@ if (row < ROWS) {
     function addLetter(ch) {
       if (isOver) return;
       if (row >= ROWS) return;
+        // Safety: if col is wrong (e.g., stuck at 5), recompute it from the grid row
+  if (col >= COLS) {
+    const firstEmpty = grid[row].findIndex(x => x === "");
+    if (firstEmpty !== -1) col = firstEmpty;
+  }
       if (col >= COLS) return;
       grid[row][col] = ch;
       col += 1;
