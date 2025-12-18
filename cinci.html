@@ -179,7 +179,7 @@ const ALLOWED = new Set(ALLOWED_5_LIST.map(normWord));
 
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
 
-   // Daily word selection (Europe/Bucharest midnight)
+   // --- Daily word selection (Europe/Bucharest midnight) ---
 const START_KEY = "2025-01-01"; // season start (Bucharest date key)
 
 function bucharestDateKey(now = new Date()) {
@@ -191,14 +191,21 @@ function bucharestDateKey(now = new Date()) {
   }).formatToParts(now);
 
   const get = (type) => parts.find(p => p.type === type)?.value || "";
-  const y = get("year");
-  const m = get("month");
-  const d = get("day");
-  return `${y}-${m}-${d}`;
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+function daysBetweenKeys(startKey, endKey) {
+  const [sy, sm, sd] = startKey.split("-").map(Number);
+  const [ey, em, ed] = endKey.split("-").map(Number);
+  const startUTC = Date.UTC(sy, sm - 1, sd);
+  const endUTC = Date.UTC(ey, em - 1, ed);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.floor((endUTC - startUTC) / msPerDay);
 }
 
 const todayKey = bucharestDateKey();
 const puzzleIndex = Math.max(0, daysBetweenKeys(START_KEY, todayKey));
+
 const ANSWER_RAW = ANSWERS_5[puzzleIndex % ANSWERS_5.length];
 const ANSWER_NORM = normWord(ANSWER_RAW);
     const shareBtn = document.getElementById("shareBtn");
