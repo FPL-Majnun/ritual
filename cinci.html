@@ -388,19 +388,20 @@ function applyGroup(normCh, st) {
         return;
       }
 
-      const guess = getCurrentGuess();
+      const guessRaw = cleanWord(getCurrentGuess());
+      const guessNorm = normWord(guessRaw);
 
-      if (!ALLOWED.has(guess)) {
-        setMsg("Cuvânt inexistent (lista v0).");
-        return;
-      }
+     if (!ALLOWED.has(guessNorm)) {
+  setMsg("Cuvânt inexistent.");
+  return;
+}
 
-      const states = scoreGuess(guess, ANSWER);
+      const states = scoreGuess(guessNorm, ANSWER_NORM);
       paintRow(row, states);
       updateKeyboard(guess, states);
       saveState();
 
-      if (guess === ANSWER) {
+      if (guessNorm === ANSWER_NORM) {
         isOver = true;
         result = "win";
         setMsg("Bravo. Ritual făcut ✅");
@@ -414,7 +415,7 @@ function applyGroup(normCh, st) {
       if (row >= ROWS) {
         isOver = true;
         result = "lose";
-        setMsg(`Gata. Cuvântul era: ${ANSWER}`);
+        setMsg(`Gata. Cuvântul era: ${ANSWER_RAW}`);
         saveState();
         return;
       }
