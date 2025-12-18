@@ -123,15 +123,49 @@
     const ROWS = 6;
     const COLS = 5;
 
-    // v0 test words (5 letters, uppercase). We'll expand later.
-    const WORDS = [
-      "CARTE","MASIV","NOROC","PIESE","SALTA",
-      "MUNTE","LACUL","ROATA","LUMEA","COPAC",
-      "FEREA","SOARE","NODUL","VIRUS","LINIE",
-      "PUNCT","HARTA","SAREI","CINCI","ALTAR"
-    ].map(w => w.toUpperCase());
+    // --- Word lists (shared across CINCI / PATRU / OPT) ---
+// Clean older cedilla variants (Ş/Ţ) into comma variants (Ș/Ț) and uppercase.
+function cleanWord(w) {
+  return (w || "")
+    .toUpperCase()
+    .replaceAll("Ş", "Ș")
+    .replaceAll("Ţ", "Ț");
+}
 
-    const ALLOWED = new Set(WORDS);
+// HYBRID mode normalization: diacritics optional for gameplay logic.
+function normChar(ch) {
+  ch = cleanWord(ch);
+  if (ch === "Ă" || ch === "Â") return "A";
+  if (ch === "Î") return "I";
+  if (ch === "Ș") return "S";
+  if (ch === "Ț") return "T";
+  return ch;
+}
+function normWord(w) {
+  return cleanWord(w).split("").map(normChar).join("");
+}
+
+// Fallback (game still works even if wordlist files fail to load)
+const FALLBACK_ANSWERS_5 = [
+  "CARTE","MASIV","NOROC","PIESE","SALTA",
+  "MUNTE","LACUL","ROATA","LUMEA","COPAC",
+  "FEREA","SOARE","NODUL","VIRUS","LINIE",
+  "PUNCT","HARTA","SAREI","CINCI","ALTAR"
+].map(cleanWord);
+
+// External lists (recommended):
+const ANSWERS_5 =
+  (Array.isArray(window.RITUAL_ANSWERS_5) && window.RITUAL_ANSWERS_5.length)
+    ? window.RITUAL_ANSWERS_5.map(cleanWord)
+    : FALLBACK_ANSWERS_5;
+
+const ALLOWED_5_LIST =
+  (Array.isArray(window.RITUAL_ALLOWED_5) && window.RITUAL_ALLOWED_5.length)
+    ? window.RITUAL_ALLOWED_5.map(cleanWord)
+    : ANSWERS_5;
+
+// Validate guesses by normalized form (hybrid diacritics)
+const ALLOWED = new Set(ALLOWED_5_LIST.map(normWord));
 
     const cells = Array.from(document.querySelectorAll(".cell"));
     const keyEls = Array.from(document.querySelectorAll(".key"));
