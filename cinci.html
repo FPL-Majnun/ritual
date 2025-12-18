@@ -310,10 +310,10 @@ function loadState() {
     }
 
     // Score with duplicate-letter handling
-    function scoreGuess(guess, answer) {
+    function scoreGuess(guessNorm, answerNorm) {
       const states = Array(COLS).fill("absent");
-      const ans = answer.split("");
-      const g = guess.split("");
+      const ans = answerNorm.split("");
+      const g = guessNorm.split("");
 
       // pass 1: correct
       for (let i = 0; i < COLS; i++) {
