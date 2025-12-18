@@ -199,7 +199,8 @@ function bucharestDateKey(now = new Date()) {
 
 const todayKey = bucharestDateKey();
 const puzzleIndex = Math.max(0, daysBetweenKeys(START_KEY, todayKey));
-const ANSWER = WORDS[puzzleIndex % WORDS.length];
+const ANSWER_RAW = ANSWERS_5[puzzleIndex % ANSWERS_5.length];
+const ANSWER_NORM = normWord(ANSWER_RAW);
     const shareBtn = document.getElementById("shareBtn");
     // --- Save/restore (daily-only) ---
 const STORAGE_KEY = `ritual_cinci_${todayKey}`;
