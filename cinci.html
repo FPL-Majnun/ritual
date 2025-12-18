@@ -274,12 +274,10 @@ function loadState() {
         }
       }
     }
-    function renderKeyboardColors() {
+   function renderKeyboardColors() {
   keyEls.forEach(k => k.classList.remove("absent","present","correct"));
-  for (const [ch, st] of keyState.entries()) {
-    const el = keyByChar.get(ch);
-    if (!el) continue;
-    el.classList.add(st);
+  for (const [normCh, st] of keyState.entries()) {
+    applyGroup(normCh, st);
   }
 }
 
@@ -344,23 +342,42 @@ function loadState() {
 
     // Keep keyboard coloring monotonic: correct > present > absent
     const rank = { absent: 1, present: 2, correct: 3 };
+    // Key groups for HYBRID mode (color as a family)
+const KEY_GROUPS = {
+  A: ["A","Ă","Â"],
+  I: ["I","Î"],
+  S: ["S","Ș"],
+  T: ["T","Ț"]
+};
+
+function applyKeyClass(ch, st) {
+  const el = keyByChar.get(ch);
+  if (!el) return;
+  el.classList.remove("absent","present","correct");
+  el.classList.add(st);
+}
+
+function applyGroup(normCh, st) {
+  const group = KEY_GROUPS[normCh] || [normCh];
+  group.forEach(k => applyKeyClass(k, st));
+}
     const keyState = new Map(); // char -> state
 
-    function updateKeyboard(guess, states) {
-      for (let i = 0; i < guess.length; i++) {
-        const ch = guess[i];
-        const st = states[i];
-        if (!keyByChar.has(ch)) continue;
+    function updateKeyboard(guessNorm, states) {
+  for (let i = 0; i < guessNorm.length; i++) {
+    const normCh = guessNorm[i];
+    const st = states[i];
 
-        const prev = keyState.get(ch);
-        if (!prev || rank[st] > rank[prev]) {
-          keyState.set(ch, st);
-          const el = keyByChar.get(ch);
-          el.classList.remove("absent","present","correct");
-          el.classList.add(st);
-        }
-      }
+    const group = KEY_GROUPS[normCh] || [normCh];
+    if (!group.some(k => keyByChar.has(k))) continue;
+
+    const prev = keyState.get(normCh);
+    if (!prev || rank[st] > rank[prev]) {
+      keyState.set(normCh, st);
+      applyGroup(normCh, st);
     }
+  }
+}
 
     function submitRow() {
       if (isOver) return;
