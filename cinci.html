@@ -404,50 +404,53 @@ function applyGroup(normCh, st) {
   }
 }
 
-    function submitRow() {
-      if (isOver) return;
-      if (row >= ROWS) return;
+   function submitRow() {
+  if (isOver) return;
+  if (row >= ROWS) return;
 
-      if (col < COLS) {
-        setMsg("Completează 5 litere.");
-        return;
-      }
+  // If the row isn't full, block submit
+  if (grid[row].some(ch => ch === "")) {
+    setMsg("Completează 5 litere.");
+    return;
+  }
 
-      const guessRaw = cleanWord(getCurrentGuess());
-      const guessNorm = normWord(guessRaw);
+  const guessRaw = cleanWord(getCurrentGuess());
+  const guessNorm = normWord(guessRaw);
 
-     if (!ALLOWED.has(guessNorm)) {
-  setMsg("Cuvânt inexistent.");
-  return;
+  if (!ALLOWED.has(guessNorm)) {
+    setMsg("Cuvânt inexistent.");
+    return;
+  }
+
+  const states = scoreGuess(guessNorm, ANSWER_NORM);
+  paintRow(row, states);
+  updateKeyboard(guessNorm, states);
+
+  // Win?
+  if (guessNorm === ANSWER_NORM) {
+    isOver = true;
+    result = "win";
+    setMsg("Bravo. Ritual făcut ✅");
+    saveState();
+    return;
+  }
+
+  // Move to next row
+  row += 1;
+  col = 0;
+
+  // Lose?
+  if (row >= ROWS) {
+    isOver = true;
+    result = "lose";
+    setMsg(`Gata. Cuvântul era: ${ANSWER_RAW}`);
+    saveState();
+    return;
+  }
+
+  setMsg("");
+  saveState();
 }
-
-      const states = scoreGuess(guessNorm, ANSWER_NORM);
-      paintRow(row, states);
-      updateKeyboard(guess, states);
-      saveState();
-
-      if (guessNorm === ANSWER_NORM) {
-        isOver = true;
-        result = "win";
-        setMsg("Bravo. Ritual făcut ✅");
-        saveState();
-        return;
-      }
-
-      row += 1;
-      col = 0;
-      saveState();
-
-      if (row >= ROWS) {
-        isOver = true;
-        result = "lose";
-        setMsg(`Gata. Cuvântul era: ${ANSWER_RAW}`);
-        saveState();
-        return;
-      }
-
-      setMsg("");
-    }
 
     function handleInputToken(token) {
       if (!token) return;
