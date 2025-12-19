@@ -186,19 +186,36 @@ const FALLBACK_ANSWERS_5 = [
   "PUNCT","HARTA","SAREI","CINCI","ALTAR"
 ].map(cleanWord);
 
-// External lists (recommended):
-const ANSWERS_5 =
-  (Array.isArray(window.RITUAL_ANSWERS_5) && window.RITUAL_ANSWERS_5.length)
-    ? window.RITUAL_ANSWERS_5.map(cleanWord)
-    : FALLBACK_ANSWERS_5;
+// Robust loader: supports either Array ["CARTE", ...] OR string "CARTE\nMUNTE\n..."
+function loadGlobalList(globalName) {
+  const v = window[globalName];
 
-const ALLOWED_5_LIST =
-  (Array.isArray(window.RITUAL_ALLOWED_5) && window.RITUAL_ALLOWED_5.length)
-    ? window.RITUAL_ALLOWED_5.map(cleanWord)
-    : ANSWERS_5;
+  if (Array.isArray(v)) return v.map(cleanWord).filter(Boolean);
+
+  if (typeof v === "string") {
+    return v
+      .trim()
+      .split(/\s+/)
+      .map(cleanWord)
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+// External lists (recommended)
+let ANSWERS_5 = loadGlobalList("RITUAL_ANSWERS_5");
+let ALLOWED_5_LIST = loadGlobalList("RITUAL_ALLOWED_5");
+
+// Fallbacks if lists failed to load
+if (!ANSWERS_5.length) ANSWERS_5 = FALLBACK_ANSWERS_5;
+if (!ALLOWED_5_LIST.length) ALLOWED_5_LIST = ANSWERS_5;
 
 // Validate guesses by normalized form (hybrid diacritics)
 const ALLOWED = new Set(ALLOWED_5_LIST.map(normWord));
+
+// Ensure answers are also guessable (after hybrid normalization)
+ANSWERS_5 = ANSWERS_5.filter(w => ALLOWED.has(normWord(w)))
 
     const cells = Array.from(document.querySelectorAll(".cell"));
     const keyEls = Array.from(document.querySelectorAll(".key"));
