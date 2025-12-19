@@ -89,6 +89,80 @@
   z-index: 9999;
 }
 .toast.show { opacity: 1; }
+    /* Small header buttons (Ajutor / X) */
+.iconbtn{
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+.iconbtn:hover { border-color: #bbb; }
+
+/* Help modal */
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 10000;
+}
+.modalOverlay.show{ display:flex; }
+.modal{
+  width: min(560px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+.modalHead{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+}
+.modalTitle{ font-weight: 800; font-size: 16px; color: var(--ink); }
+.modalBody{ padding: 14px; color:#222; font-size: 14px; line-height: 1.35; }
+.modalFoot{
+  display:flex;
+  justify-content: flex-end;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+}
+.primaryBtn{
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: var(--correct);
+  color: var(--ink);
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.primaryBtn:hover{ filter: brightness(0.98); }
+
+.legend{ display:flex; flex-direction:column; gap:10px; margin: 10px 0 0; }
+.legendRow{ display:flex; gap:10px; align-items:center; }
+.miniCell{
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight: 900;
+  border: 2px solid transparent;
+}
+.miniCell.correct{ background: var(--correct); color: var(--ink); border-color: var(--correct); }
+.miniCell.present{ background: var(--present); color: var(--ink); border-color: var(--present); }
+.miniCell.absent{ background: var(--absent); color: #fff; border-color: var(--absent); }
+
+/* Make the diacritics row feel intentional */
+.row.diacritics{ gap: 8px; }
   </style>
     <script src="./wordlists/allowed5.js"></script>
   <script src="./wordlists/answers5.js"></script>
@@ -96,10 +170,13 @@
 <body>
   <div id="toast" class="toast" aria-live="polite"></div>
   <div class="wrap">
-    <div class="top">
+       <div class="top">
       <div class="brand">Ritual</div>
       <div class="pill">CINCI</div>
-      <div><a href="./index.html">Înapoi</a></div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="helpBtn" class="iconbtn" type="button" aria-label="Ajutor">Ajutor</button>
+        <a href="./index.html">Înapoi</a>
+      </div>
     </div>
 
     <h1>CINCI</h1>
@@ -122,21 +199,29 @@
       <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
     </div>
 
-    <div class="keyboard" aria-label="Tastatură">
+       <div class="keyboard" aria-label="Tastatură">
       <div class="row">
         <div class="key" data-k="Q">Q</div><div class="key" data-k="W">W</div><div class="key" data-k="E">E</div><div class="key" data-k="R">R</div><div class="key" data-k="T">T</div>
         <div class="key" data-k="Y">Y</div><div class="key" data-k="U">U</div><div class="key" data-k="I">I</div><div class="key" data-k="O">O</div><div class="key" data-k="P">P</div>
       </div>
+
       <div class="row">
         <div class="key" data-k="A">A</div><div class="key" data-k="S">S</div><div class="key" data-k="D">D</div><div class="key" data-k="F">F</div><div class="key" data-k="G">G</div>
         <div class="key" data-k="H">H</div><div class="key" data-k="J">J</div><div class="key" data-k="K">K</div><div class="key" data-k="L">L</div>
-        <div class="key" data-k="Ă">Ă</div><div class="key" data-k="Â">Â</div><div class="key" data-k="Î">Î</div>
       </div>
+
+      <div class="row diacritics" aria-label="Diacritice">
+        <div class="key" data-k="Ă">Ă</div>
+        <div class="key" data-k="Â">Â</div>
+        <div class="key" data-k="Î">Î</div>
+        <div class="key" data-k="Ș">Ș</div>
+        <div class="key" data-k="Ț">Ț</div>
+      </div>
+
       <div class="row">
         <div class="key wide" data-k="ENTER">Enter</div>
         <div class="key" data-k="Z">Z</div><div class="key" data-k="X">X</div><div class="key" data-k="C">C</div><div class="key" data-k="V">V</div><div class="key" data-k="B">B</div>
         <div class="key" data-k="N">N</div><div class="key" data-k="M">M</div>
-        <div class="key" data-k="Ș">Ș</div><div class="key" data-k="Ț">Ț</div>
         <div class="key wide" data-k="BACKSPACE">←</div>
       </div>
     </div>
@@ -147,6 +232,51 @@
   </button>
   <div id="msg" class="hint" style="margin:0;">Apasă tastele sau scrie de la tastatură.</div>
 </div>
+  </div>
+    <!-- Help modal -->
+  <div id="helpOverlay" class="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="modalHead">
+        <div id="helpTitle" class="modalTitle">Cum se joacă</div>
+        <button id="helpClose" class="iconbtn" type="button" aria-label="Închide">×</button>
+      </div>
+
+      <div class="modalBody">
+        <p style="margin-top:0;">
+          Ghicește cuvântul zilei în <b>6</b> încercări. După fiecare încercare, culorile îți arată cât de aproape ești.
+        </p>
+
+        <div class="legend">
+          <div class="legendRow">
+            <span class="miniCell correct">🟦</span>
+            <div><b>Corect</b> — litera e pe poziția corectă.</div>
+          </div>
+          <div class="legendRow">
+            <span class="miniCell present">🟨</span>
+            <div><b>Prezent</b> — litera există, dar e pe altă poziție.</div>
+          </div>
+          <div class="legendRow">
+            <span class="miniCell absent">⬛</span>
+            <div><b>Absent</b> — litera nu apare în cuvânt.</div>
+          </div>
+        </div>
+
+        <div class="hr" style="margin:14px 0;"></div>
+
+        <p>
+          <b>Diacritice (mod hibrid):</b> poți scrie cu sau fără diacritice; jocul le tratează ca echivalente:
+          <b>A = A/Ă/Â</b>, <b>I = I/Î</b>, <b>S = S/Ș</b>, <b>T = T/Ț</b>.
+        </p>
+
+        <p style="margin-bottom:0;">
+          <b>Reset zilnic:</b> cuvântul se schimbă la <b>miezul nopții</b> (Europe/Bucharest).
+        </p>
+      </div>
+
+      <div class="modalFoot">
+        <button id="helpOk" class="primaryBtn" type="button">Am înțeles</button>
+      </div>
+    </div>
   </div>
 
   <script src="./wordlists/answers5.js"></script>
@@ -221,6 +351,44 @@ ANSWERS_5 = ANSWERS_5.filter(w => ALLOWED.has(normWord(w)))
     const keyEls = Array.from(document.querySelectorAll(".key"));
     const keyByChar = new Map(keyEls.map(k => [k.getAttribute("data-k"), k]));
     const msgEl = document.getElementById("msg");
+        // --- Help modal (first-time) ---
+    const HELP_SEEN_KEY = "ritual_cinci_seen_help_v1";
+    const helpBtn = document.getElementById("helpBtn");
+    const helpOverlay = document.getElementById("helpOverlay");
+    const helpClose = document.getElementById("helpClose");
+    const helpOk = document.getElementById("helpOk");
+
+    let helpOpen = false;
+
+    function openHelp() {
+      if (!helpOverlay) return;
+      helpOpen = true;
+      helpOverlay.classList.add("show");
+      helpOverlay.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      // focus close for accessibility
+      if (helpClose) helpClose.focus();
+    }
+
+    function closeHelp(markSeen = true) {
+      if (!helpOverlay) return;
+      helpOpen = false;
+      helpOverlay.classList.remove("show");
+      helpOverlay.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (markSeen) localStorage.setItem(HELP_SEEN_KEY, "1");
+      if (helpBtn) helpBtn.focus();
+    }
+
+    if (helpBtn) helpBtn.addEventListener("click", () => openHelp());
+    if (helpClose) helpClose.addEventListener("click", () => closeHelp(true));
+    if (helpOk) helpOk.addEventListener("click", () => closeHelp(true));
+
+    if (helpOverlay) {
+      helpOverlay.addEventListener("click", (e) => {
+        if (e.target === helpOverlay) closeHelp(true);
+      });
+    }
 
     let row = 0;
     let col = 0;
@@ -571,6 +739,7 @@ function applyGroup(normCh, st) {
 }
 
     function handleInputToken(token) {
+            if (helpOpen) return;
       if (!token) return;
       if (token === "ENTER") return submitRow();
       if (token === "BACKSPACE") return backspace();
@@ -589,6 +758,14 @@ function applyGroup(normCh, st) {
 
     // Physical keyboard
     document.addEventListener("keydown", (e) => {
+        // If help modal is open: allow ESC to close, block gameplay typing
+  if (helpOpen) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeHelp(true);
+    }
+    return;
+  }
   // Don’t interfere with browser shortcuts (Ctrl/⌘/Alt combos)
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
@@ -661,13 +838,17 @@ if (restored) {
     if (guess.length === COLS) {
       const states = scoreGuess(normWord(guess), ANSWER_NORM);
       paintRow(r, states);
-      updateKeyboard(guess, states);
+     updateKeyboard(normWord(guess), states);
     }
   }
   renderKeyboardColors();
 }
 
 saveState();
+    // Auto-open help once per browser/device
+if (!localStorage.getItem(HELP_SEEN_KEY)) {
+  setTimeout(() => openHelp(), 80);
+}
   </script>
 </body>
 </html>
